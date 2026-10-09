@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0A0B0C">
+<title>Zubalenok — Find your perfect workout plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;700;900&family=Source+Sans+3:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="images/start-bg.webp">
+<style>
+  :root {
+    --pink: #FF009B;
+    --pink-light: #FF57BD;
+    --pink-text: #FA04A9;
+    --bg: #0A0B0C;
+    --bar-off: #424242;
+    --card: rgba(255, 255, 255, 0.05);
+    --card-sel: rgba(255, 0, 155, 0.05);
+    --icon-box: linear-gradient(180deg, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0.06) 100%);
+    --onest: 'Onest', sans-serif;
+    --sans: 'Source Sans 3', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body {
+    color: #fff;
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+  }
+  img { display: block; }
+  button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+
+  .app {
+    position: relative;
+    width: 100%;
+    max-width: 428px;
+    min-height: 100vh;
+    min-height: 100dvh;
+    margin: 0 auto;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  /* ---------- screens ---------- */
+  .screen {
+    display: none;
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    padding: 40px 24px;
+  }
+  .screen.is-active { display: flex; animation: screenIn .32s ease both; }
+  .screen.is-back.is-active { animation-name: screenBack; }
+  @keyframes screenIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+  @keyframes screenBack { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+
+  .top { align-self: stretch; display: flex; flex-direction: column; gap: 24px; }
+
+  /* header */
+  .header { display: flex; justify-content: space-between; align-items: center; height: 24px; }
+  .icon-btn { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
+  .icon-btn svg { width: 24px; height: 24px; display: block; }
+  .logo { width: 104px; height: 19px; display: block; }
+
+  /* progress */
+  .progress { display: flex; flex-direction: column; gap: 4px; }
+  .progress__count { font-size: 14px; font-weight: 400; }
+  .progress__count span { color: rgba(255, 255, 255, 0.5); }
+  .progress__bars { display: flex; gap: 4px; }
+  .progress__bars i { flex: 1 1 0; height: 4px; border-radius: 1000px; background: var(--bar-off); transition: background .3s; }
+  .progress__bars i.on { background: var(--pink); }
+
+  .title { font-family: var(--onest); font-size: 26px; font-weight: 700; }
+  .title-wrap { display: flex; flex-direction: column; gap: 4px; }
+  .subtitle { font-size: 16px; font-weight: 400; }
+
+  /* main button */
+  .btn {
+    align-self: stretch;
+    height: 52px;
+    padding: 0 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border-radius: 1000px;
+    background: radial-gradient(190px 45.63px at 50% 50%, var(--pink-light) 0%, var(--pink) 100%), var(--pink);
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 700;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: #fff;
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 24px;
+    z-index: 5;
+    transition: opacity .2s, transform .15s;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn[disabled] { background: #6B0A45; color: rgba(255, 255, 255, 0.5); cursor: default; transform: none; }
+  .btn svg { width: 24.17px; height: 12.24px; display: block; }
+
+  /* ---------- option card base ---------- */
+  .opt {
+    position: relative;
+    display: flex;
+    border-radius: 16px;
+    background: var(--card);
+    -webkit-backdrop-filter: blur(17.5px);
+    backdrop-filter: blur(17.5px);
+    cursor: pointer;
+    user-select: none;
+    transition: background .2s;
+    text-align: left;
+  }
+  .opt::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    border: 1px solid var(--pink);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+    z-index: 2;
+  }
+  .opt.is-selected { background: var(--card-sel); }
+  .opt.is-selected::after { opacity: 1; }
+  .opt-label { font-size: 18px; font-weight: 500; }
+  .opt-label--lh { line-height: 20px; }
+
+  /* checkbox */
+  .chk { position: relative; width: 28px; height: 28px; flex-shrink: 0; border-radius: 6px; }
+  .chk::before { content: ''; position: absolute; inset: 0; border-radius: inherit; border: 1px solid #fff; opacity: .5; transition: opacity .2s; }
+  .chk svg { position: absolute; inset: 0; width: 28px; height: 28px; opacity: 0; transition: opacity .2s; }
+  .is-selected .chk { background: var(--pink); }
+  .is-selected .chk::before { opacity: 0; }
+  .is-selected .chk svg { opacity: 1; }
+  .chk--r8 { border-radius: 6px; }
+  .is-selected .chk--r8 { border-radius: 8px; }
+
+  .list { display: flex; flex-direction: column; gap: 16px; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+
+  /* Q1 — rows with icon */
+  .opt--row { padding: 16px; justify-content: space-between; align-items: center; }
+  .opt--row .opt-main { display: flex; align-items: center; gap: 8px; }
+  .opt--row .opt-main img { width: 40px; height: 40px; flex-shrink: 0; }
+
+  /* Q2 — rows with photo */
+  .opt--photo { padding-right: 16px; align-items: center; gap: 14px; overflow: hidden; }
+  .opt--photo .opt-main { flex: 1 1 0; display: flex; align-items: center; gap: 8px; }
+  .opt--photo .opt-main img { width: 128px; height: 101px; flex-shrink: 0; border-bottom-left-radius: 16px; }
+  .opt--photo .opt-label { flex: 1 1 0; }
+
+  /* Q3 — body map */
+  .bodymap { position: relative; align-self: stretch; height: 523px; flex-shrink: 0; }
+  .bodymap__img { position: absolute; left: 50%; top: 0; width: 340px; height: 523px; transform: translateX(-50%); pointer-events: none; }
+  .bodymap__col { position: absolute; top: 40.5px; width: 125px; display: flex; flex-direction: column; gap: 14px; }
+  .bodymap__col--l { left: 0; }
+  .bodymap__col--r { right: 0; }
+  .opt--zone { display: block; width: 125px; height: 138px; }
+  .opt--zone .zone-icon { position: absolute; left: 50%; transform: translateX(-50%); }
+  .opt--zone .opt-label { position: absolute; left: 16px; width: 93px; text-align: center; }
+
+  /* Q4 / Q5 — big tiles */
+  .opt--tile { height: 182px; padding: 16px; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
+  .opt--tile.h155 { height: 155px; }
+  .opt--tile .tile-icon { width: 40px; height: 40px; }
+  .tile-big { font-size: 32px; font-weight: 700; }
+  .tile-mid { font-size: 26px; font-weight: 700; white-space: nowrap; }
+  .tile-sub { width: 93px; font-size: 18px; font-weight: 500; line-height: 20px; }
+  .tile-sub--wide { width: auto; align-self: stretch; }
+
+  /* Q5 — days */
+  .days { display: flex; justify-content: space-between; align-items: center; }
+  .day { width: 40px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
+  .day__name { opacity: .7; font-family: var(--onest); font-size: 14px; font-weight: 400; }
+  .day__dot {
+    width: 40px; height: 40px; border-radius: 100px;
+    background: var(--card);
+    -webkit-backdrop-filter: blur(17.5px);
+    backdrop-filter: blur(17.5px);
+    transition: background .2s;
+  }
+  .day.is-selected .day__dot { background: var(--pink); }
+
+  /* Q6/Q7/Q8 — image cards */
+  .opt--img { flex-direction: column; align-items: center; gap: 14px; padding-bottom: 16px; }
+  .opt--img .card-img { align-self: stretch; height: 97px; object-fit: cover; border-radius: 16px 16px 0 0; }
+  .opt--img.tall .card-img { height: 158px; }
+  .opt--img .card-text { align-self: stretch; padding: 0 16px; display: flex; justify-content: center; }
+  .opt--img .card-text.p8 { padding: 0 8px; }
+  .opt--img .opt-label { flex: 1 1 0; text-align: center; line-height: 20px; }
+  .opt--mix { background: var(--pink); }
+  .opt--mix.is-selected { background: var(--pink); }
+  .opt--mix::after { border-color: #fff; }
+  .opt--mix .mix-img {
+    align-self: stretch; height: 97px; border-radius: 16px 16px 0 0;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.55) 100%), radial-gradient(50% 50% at 50% 50%, #FF009B 0%, #99005D 100%);
+  }
+  .opt--mix .mix-img img { width: 100%; height: 97px; object-fit: cover; border-radius: 16px 16px 0 0; }
+
+  /* ---------- start ---------- */
+  .screen--start {
+    padding: 40px 24px;
+    background: #0A0B0C url('images/start-bg.webp') center bottom / cover no-repeat;
+  }
+  .start-head { align-self: stretch; display: flex; flex-direction: column; align-items: center; }
+  .start-title { align-self: stretch; display: flex; flex-direction: column; align-items: center; font-family: var(--onest); font-weight: 900; text-align: center; }
+  .start-title .l1 { font-size: min(40.31px, 9.418vw); line-height: 1.2255em; }
+  .start-title .l2 { font-size: min(50px, 11.682vw); line-height: .955em; color: var(--pink-text); text-transform: uppercase; }
+  .start-title .l3 { font-size: min(44px, 10.28vw); line-height: 1.2295em; color: var(--pink-text); text-transform: uppercase; }
+  .start-sub { width: 291px; text-align: center; font-family: var(--onest); font-size: 18px; font-weight: 500; }
+  .start-foot { align-self: stretch; display: flex; flex-direction: column; gap: 14px; }
+  .btn--lg {
+    height: 68px;
+    font-size: 28px;
+    background: radial-gradient(190px 59.67px at 50% 50%, var(--pink-light) 0%, var(--pink) 100%), var(--pink);
+    box-shadow: 0 0 35px rgba(255, 62, 179, 0.55);
+  }
+  .start-note { display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 16px; line-height: 20px; }
+  .start-note img { width: 14px; height: 14px; }
+
+  /* ---------- result ---------- */
+  .screen--result {
+    background: #0A0B0C url('images/result-bg.webp') center top / 428px 926px no-repeat;
+  }
+  .result-top { align-self: stretch; display: flex; flex-direction: column; align-items: center; gap: 32px; }
+  .result-top > * { align-self: stretch; }
+  .result-head { display: flex; justify-content: space-between; align-items: center; height: 24px; }
+  .week { display: flex; flex-direction: column; gap: 8px; }
+  .week-title { display: flex; align-items: center; gap: 14px; }
+  .week-title__bar { width: 3px; align-self: stretch; background: var(--pink); }
+  .week-title__txt { display: flex; flex-direction: column; font-family: var(--onest); font-weight: 700; }
+  .week-title__txt .a { font-size: 26px; line-height: 29.15px; }
+  .week-title__txt .b { font-size: 39.17px; line-height: 45.85px; color: var(--pink); }
+  .plan {
+    padding: 16px; border-radius: 16px; background: var(--card);
+    -webkit-backdrop-filter: blur(17.5px); backdrop-filter: blur(17.5px);
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .plan-row { display: flex; justify-content: space-between; align-items: center; line-height: 20px; }
+  .plan-row__l, .plan-row__r { display: flex; align-items: center; gap: 8px; }
+  .plan-row__day { width: 39px; opacity: .7; font-size: 20px; font-weight: 400; }
+  .plan-row__dash { opacity: .7; font-size: 18px; font-weight: 500; }
+  .plan-row__name { font-size: 18px; font-weight: 700; }
+  .plan-row__r { opacity: .7; font-size: 18px; font-weight: 400; }
+  .plan-row__r img { width: 14px; height: 14px; }
+  .note { font-size: 14px; font-style: italic; font-weight: 400; }
+  .note span { color: var(--pink); }
+  .offer { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .offer__title { align-self: stretch; text-align: center; font-family: var(--onest); font-size: 35.11px; font-weight: 700; }
+  .offer__title span { color: var(--pink); }
+  .offer__price {
+    font-family: var(--onest); font-size: 124.43px; font-weight: 900; line-height: 132.73px; text-align: center;
+    background: linear-gradient(180deg, #FF99D7 0%, #FF009B 100%);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent; color: #FF99D7;
+    filter: drop-shadow(0 0 13.2px rgba(255, 0, 155, 0.22));
+  }
+  .feats { position: relative; align-self: stretch; display: flex; justify-content: space-between; align-items: center; }
+  .feat { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; font-size: 13px; line-height: 14px; }
+  .feat img { width: 35px; height: 35px; }
+  .feat b { font-weight: 600; }
+  .feat span { font-weight: 400; }
+  .feats__div { position: absolute; top: 8.5px; width: 1px; height: 54px; border-radius: 1px; background: rgba(255, 255, 255, 0.2); }
+</style>
+</head>
+<body>
+<div class="app" id="app"></div>
+
+<script>
+(() => {
+  const IMG = 'images/';
+  const TOTAL = 8;
+
+  const ICON = {
+    back: '<svg viewBox="756 140 24 24" fill="none" aria-hidden="true"><path d="M758.5 152L765.759 159.171C765.844 159.269 765.949 159.349 766.068 159.406C766.186 159.463 766.315 159.494 766.446 159.499C766.578 159.504 766.709 159.483 766.831 159.435C766.953 159.388 767.065 159.316 767.157 159.224C767.25 159.132 767.323 159.022 767.371 158.901C767.419 158.781 767.441 158.651 767.436 158.521C767.431 158.392 767.399 158.264 767.342 158.147C767.284 158.031 767.203 157.927 767.103 157.842L762.239 153.018H776.546C776.799 153.018 777.042 152.918 777.221 152.742C777.4 152.565 777.5 152.325 777.5 152.075C777.5 151.826 777.4 151.586 777.221 151.409C777.042 151.232 776.799 151.133 776.546 151.133H762.067L767.103 146.158C767.203 146.073 767.284 145.97 767.342 145.853C767.399 145.736 767.431 145.608 767.436 145.479C767.441 145.349 767.419 145.219 767.371 145.099C767.323 144.978 767.25 144.868 767.157 144.776C767.065 144.684 766.953 144.612 766.831 144.565C766.709 144.518 766.578 144.496 766.446 144.501C766.315 144.506 766.186 144.538 766.068 144.594C765.949 144.651 765.844 144.731 765.759 144.829L758.5 152Z" fill="white"/></svg>',
+    check: '<svg viewBox="1091 353 28 28" fill="none" aria-hidden="true"><path d="M1109.19 360.945C1111.06 359.299 1113.58 358.127 1114.62 359.847C1114.99 360.457 1115.16 361.256 1114.8 361.92C1114.14 363.13 1111.79 363.395 1109.19 365.883C1105.87 369.053 1104.66 372.406 1102.97 374.784C1102.89 374.901 1102.75 374.961 1102.59 374.987C1102.02 375.083 1101.53 374.642 1101.19 374.169C1100.63 373.381 1099.7 372.132 1098.87 371.309C1097.57 370.022 1095.73 369.303 1095.25 368.566C1094.91 368.045 1094.82 367.041 1095.61 366.249C1096.49 365.359 1097.67 365.639 1098.2 365.944C1099.68 366.785 1101.12 369.123 1101.8 370.327C1101.96 370.626 1102.41 370.626 1102.57 370.324C1103.56 368.443 1106.34 363.455 1109.19 360.945Z" fill="white"/></svg>',
+    arrow: '<svg viewBox="4752 953 26 14" fill="none" aria-hidden="true"><path d="M4752.92 960H4777.08M4770.96 966.118L4777.08 960L4770.96 953.882" stroke="white" stroke-width="1.83536" stroke-linecap="round"/></svg>',
+  };
+
+  const chk = (r8) => `<span class="chk${r8 ? ' chk--r8' : ''}">${ICON.check}</span>`;
+  const logo = `<img class="logo" src="${IMG}logo.svg" alt="Zubalenok">`;
+
+  const header = () => `
+    <div class="header">
+      <button class="icon-btn" data-back aria-label="Back">${ICON.back}</button>
+      ${logo}
+      <span class="icon-btn" aria-hidden="true"></span>
+    </div>`;
+
+  const progress = (n) => `
+    <div class="progress">
+      <div class="progress__count">${n}/<span>${TOTAL}</span></div>
+      <div class="progress__bars">${Array.from({ length: TOTAL }, (_, i) => `<i class="${i < n ? 'on' : ''}"></i>`).join('')}</div>
+    </div>`;
+
+  const nextBtn = (label = 'Next step') => `<button class="btn" data-next disabled>${label}</button>`;
+
+  /* ---------- questions ---------- */
+  const Q = [
+    {
+      id: 'goal', multi: true,
+      title: 'What do you want to achieve right now?',
+      render: (q) => `<div class="list">${[
+        ['Frame 24', 'Get stronger'],
+        ['Frame 23', 'Become more flexible'],
+        ['Frame 25', 'Move more easily and freely'],
+        ['Frame 26', 'Get in shape'],
+        ['Frame 27', 'Get back to working out'],
+        ['Frame 28 2', 'Simply feel better'],
+      ].map(([img, t]) => `
+        <div class="opt opt--row" data-opt="${t}" role="checkbox" tabindex="0">
+          <div class="opt-main"><img src="${IMG}${img}.webp" alt=""><span class="opt-label">${t}</span></div>
+          ${chk()}
+        </div>`).join('')}</div>`,
+    },
+    {
+      id: 'body',
+      title: 'How does your body feel right now?',
+      render: () => `<div class="list">${[
+        ['image 12', 'I feel great'],
+        ['image 12 1', 'I feel a little stiff'],
+        ['image 12 2', 'I feel very stiff'],
+        ['image 12 3', 'I often feel tension'],
+        ['image 12 4', 'I haven’t worked out properly in a long time', true],
+      ].map(([img, t, lh]) => `
+        <div class="opt opt--photo" data-opt="${t}" role="radio" tabindex="0">
+          <div class="opt-main"><img src="${IMG}${img}.webp" alt=""><span class="opt-label${lh ? ' opt-label--lh' : ''}">${t}</span></div>
+          ${chk(true)}
+        </div>`).join('')}</div>`,
+    },
+    {
+      id: 'zones', multi: true, max: 2,
+      title: 'What do you want to improve first?',
+      subtitle: 'Choose 1–2:',
+      // zone cards live outside the top block (body map)
+      after: () => {
+        const zone = (t, img, w, h, it, tt, lh) => `
+          <div class="opt opt--zone" data-opt="${t.replace('<br>', ' ')}" role="checkbox" tabindex="0">
+            <img class="zone-icon" src="${IMG}${img}.webp" alt="" style="width:${w}px;height:${h}px;top:${it}px">
+            <span class="opt-label${lh ? ' opt-label--lh' : ''}" style="top:${tt}px">${t}</span>
+          </div>`;
+        return `
+        <div class="bodymap">
+          <img class="bodymap__img" src="${IMG}body.webp" alt="">
+          <div class="bodymap__col bodymap__col--l">
+            ${zone('Hips', 'Union 9', 36, 39.5, 32.25, 79.75)}
+            ${zone('Shoulders<br>and neck', 'Union 11', 38.5, 46, 22.25, 75.76, true)}
+            ${zone('Core', 'Union 13', 37, 39, 32.5, 79.5)}
+          </div>
+          <div class="bodymap__col bodymap__col--r">
+            ${zone('Back and<br>lower back', 'Union 10', 39.5, 45.5, 22.25, 75.75, true)}
+            ${zone('Legs', 'Union 12', 20.5, 52, 26.25, 85.98)}
+            ${zone('Full body', 'Union 14', 24.5, 66.5, 18.25, 93.22)}
+          </div>
+        </div>`;
+      },
+    },
+    {
+      id: 'time',
+      title: 'How much time can you realistically spend on one workout?',
+      render: () => `<div class="grid">${[
+        ['Frame 24 1', '10–15', 'minutes'],
+        ['Frame 24 1', '20–30', 'minutes'],
+        ['Frame 24 1', '30–45', 'minutes'],
+        ['Frame 25 1', 'My schedule', 'varies each day', true],
+      ].map(([img, big, sub, mid]) => `
+        <div class="opt opt--tile" data-opt="${big}" role="radio" tabindex="0">
+          <img class="tile-icon" src="${IMG}${img}.webp" alt="">
+          <div class="${mid ? 'tile-mid' : 'tile-big'}">${big}</div>
+          <div class="tile-sub${mid ? ' tile-sub--wide' : ''}">${sub}</div>
+        </div>`).join('')}</div>`,
+    },
+    {
+      id: 'days',
+      title: 'How many days a week are you realistically ready to work out?',
+      render: () => `
+        <div class="days" data-days>${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => `
+          <div class="day" data-day="${d}" role="checkbox" tabindex="0"><div class="day__name">${d}</div><div class="day__dot"></div></div>`).join('')}
+        </div>
+        <div class="grid">${[
+          ['2–3', 'days'], ['4-5', 'days'], ['6-7', 'days'], ['I’m not sure,', 'I want to start gradually', true],
+        ].map(([big, sub, mid]) => `
+          <div class="opt opt--tile h155" data-opt="${big}" role="radio" tabindex="0">
+            <div class="${mid ? 'tile-mid' : 'tile-big'}">${big}</div>
+            <div class="tile-sub${mid ? ' tile-sub--wide' : ''}">${sub}</div>
+          </div>`).join('')}</div>`,
+    },
+    {
+      id: 'place',
+      title: 'Where do you prefer to work out?',
+      render: () => `<div class="grid">${[
+        ['Rectangle 1', 'At home with no equipment'],
+        ['Rectangle 1 1', 'At home with a mat / basic equipment'],
+        ['Rectangle 1 2', 'At the Gym'],
+        ['Rectangle 1 3', 'Anywhere'],
+      ].map(([img, t]) => imgCard(img, t, 'tall')).join('')}</div>`,
+    },
+    {
+      id: 'types', multi: true,
+      title: 'Which types of workouts do you enjoy the most?',
+      render: () => `<div class="grid">
+        ${imgCard('Rectangle 1 4', 'Mobility &amp; stretching', '', true)}
+        ${imgCard('q7-pilates', 'Pilates')}
+        ${imgCard('q7-strength', 'Strength training')}
+        ${imgCard('q7-yoga', 'Yoga')}
+        ${imgCard('q7-cardio', 'Cardio')}
+        <div class="opt opt--img opt--mix" data-opt="I want to mix it up" role="checkbox" tabindex="0">
+          <div class="mix-img"><img src="${IMG}Rectangle 2.webp" alt=""></div>
+          <div class="card-text"><span class="opt-label">I want to mix it up</span></div>
+        </div>
+      </div>`,
+    },
+    {
+      id: 'obstacles', multi: true, button: 'Get my plan!',
+      title: 'What most often gets in the way of working out regularly?',
+      render: () => `<div class="grid">
+        ${imgCard('Rectangle 1 9', 'I don’t know what to do', '', true)}
+        ${imgCard('Rectangle 1 10', 'I don’t have enough time')}
+        ${imgCard('Rectangle 1 11', 'I get bored <br>quickly')}
+        ${imgCard('Rectangle 1 12', 'Workouts feel too hard')}
+        ${imgCard('Rectangle 1 13', 'I lose <br>motivation')}
+        ${imgCard('Rectangle 1 14', 'It’s hard to get started again after a break')}
+      </div>`,
+    },
+  ];
+
+  function imgCard(img, t, cls = '', p8 = false) {
+    return `
+      <div class="opt opt--img ${cls}" data-opt="${t.replace(/<br>/g, '').replace('&amp;', '&')}" role="radio" tabindex="0">
+        <img class="card-img" src="${IMG}${img}.webp" alt="">
+        <div class="card-text${p8 ? ' p8' : ''}"><span class="opt-label">${t}</span></div>
+      </div>`;
+  }
+
+  /* ---------- screens ---------- */
+  const startScreen = `
+    <section class="screen screen--start" data-screen="0">
+      <div class="start-head">
+        <h1 class="start-title"><span class="l1">FIND YOUR</span><span class="l2">perfect</span><span class="l3">workout plan</span></h1>
+        <p class="start-sub">Answer a few questions and get your personalized week</p>
+      </div>
+      <div class="start-foot">
+        <button class="btn btn--lg" data-start>Take the Quiz ${ICON.arrow}</button>
+        <div class="start-note"><img src="${IMG}Vector 12.webp" alt="">Takes less than 2 minutes</div>
+      </div>
+    </section>`;
+
+  const qScreen = (q, i) => `
+    <section class="screen" data-screen="${i + 1}" data-q="${q.id}">
+      <div class="top">
+        ${header()}
+        ${progress(i + 1)}
+        ${q.subtitle
+          ? `<div class="title-wrap"><h2 class="title">${q.title}</h2><p class="subtitle">${q.subtitle}</p></div>`
+          : `<h2 class="title">${q.title}</h2>`}
+        ${q.render ? q.render(q) : ''}
+      </div>
+      ${q.after ? q.after(q) : ''}
+      ${nextBtn(q.button)}
+    </section>`;
+
+  const PLAN = [
+    ['Mon', 'Mobility', '15 min'], ['Tue', 'Strength', '20 min'], ['Wed', 'Pilates', '15 min'],
+    ['Thu', 'Recovery', '10 min'], ['Fri', 'Strength', '20 min'], ['Sat', 'Flexibility', '15 min'], ['Sun', 'Rest'],
+  ];
+
+  const resultScreen = `
+    <section class="screen screen--result" data-screen="${Q.length + 1}">
+      <div class="result-top">
+        <div class="result-head">${logo}<span class="icon-btn" aria-hidden="true"></span></div>
+        <div class="week">
+          <div class="week-title">
+            <div class="week-title__bar"></div>
+            <h2 class="week-title__txt"><span class="a">WE BUILT YOUR</span><span class="b">FIRST WEEK</span></h2>
+          </div>
+          <div class="plan">${PLAN.map(([d, n, m]) => `
+            <div class="plan-row">
+              <div class="plan-row__l"><span class="plan-row__day">${d}</span><span class="plan-row__dash">-</span><span class="plan-row__name">${n}</span></div>
+              ${m ? `<div class="plan-row__r"><img src="${IMG}Vector 13.webp" alt="">${m}</div>` : ''}
+            </div>`).join('')}
+          </div>
+          <p class="note"><span>*</span>Based on your goals, time and fitness level</p>
+        </div>
+        <div class="offer">
+          <div class="offer__title">YOUR PLAN IS <span>READY</span></div>
+          <div class="offer__price">€1</div>
+          <div class="feats">
+            <div class="feat"><img src="${IMG}Frame 2147237645 1.webp" alt=""><div><b>16+<br>programs</b></div></div>
+            <div class="feat"><img src="${IMG}Frame 2147237642 1.webp" alt=""><div><b>Your personalized<br></b><span>week</span></div></div>
+            <div class="feat"><img src="${IMG}Frame 2147237643 1.webp" alt=""><div><b>Train at<br></b><span>home or gym</span></div></div>
+            <div class="feat"><img src="${IMG}Frame 2147237644 1.webp" alt=""><div><b>10–45 min<br></b><span>sessions</span></div></div>
+            <i class="feats__div" style="left:70px"></i>
+            <i class="feats__div" style="left:202px"></i>
+            <i class="feats__div" style="left:306px"></i>
+          </div>
+        </div>
+      </div>
+      <a class="btn" href="#" data-finish>Start my week ${ICON.arrow}</a>
+    </section>`;
+
+  const app = document.getElementById('app');
+  app.innerHTML = startScreen + Q.map(qScreen).join('') + resultScreen;
+
+  /* ---------- state & navigation ---------- */
+  const screens = [...app.querySelectorAll('.screen')];
+  const answers = {};
+  let current = 0;
+
+  function go(to) {
+    const back = to < current;
+    screens[current].classList.remove('is-active', 'is-back');
+    current = to;
+    const s = screens[current];
+    s.classList.toggle('is-back', back);
+    s.classList.add('is-active');
+    window.scrollTo(0, 0);
+  }
+
+  function updateNext(screen) {
+    const id = screen.dataset.q;
+    const btn = screen.querySelector('[data-next]');
+    if (btn) btn.disabled = !(answers[id] && answers[id].length);
+  }
+
+  function toggle(el) {
+    const screen = el.closest('.screen');
+    const q = Q.find((x) => x.id === screen.dataset.q);
+    const opts = [...screen.querySelectorAll('[data-opt]')];
+    const on = el.classList.contains('is-selected');
+
+    if (q.multi) {
+      if (!on && q.max && opts.filter((o) => o.classList.contains('is-selected')).length >= q.max) {
+        // replace the oldest pick when the limit is reached
+        const first = screen.querySelector('[data-opt].is-selected');
+        first && first.classList.remove('is-selected');
+      }
+      el.classList.toggle('is-selected', !on);
+    } else {
+      opts.forEach((o) => o.classList.toggle('is-selected', o === el));
+    }
+    opts.forEach((o) => o.setAttribute('aria-checked', o.classList.contains('is-selected')));
+    answers[q.id] = opts.filter((o) => o.classList.contains('is-selected')).map((o) => o.dataset.opt);
+    updateNext(screen);
+  }
+
+  app.addEventListener('click', (e) => {
+    const t = e.target;
+    const opt = t.closest('[data-opt]');
+    if (opt) return toggle(opt);
+
+    const day = t.closest('[data-day]');
+    if (day) {
+      day.classList.toggle('is-selected');
+      answers.weekdays = [...app.querySelectorAll('[data-day].is-selected')].map((d) => d.dataset.day);
+      return;
+    }
+    if (t.closest('[data-start]')) return go(1);
+    if (t.closest('[data-back]')) return go(current - 1);
+    if (t.closest('[data-next]:not([disabled])')) return go(current + 1);
+    if (t.closest('[data-finish]')) { e.preventDefault(); console.log('Quiz answers:', answers); }
+  });
+
+  app.addEventListener('keydown', (e) => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-opt], [data-day]')) {
+      e.preventDefault();
+      e.target.click();
+    }
+  });
+
+  // preload images of upcoming screens
+  window.addEventListener('load', () => {
+    app.querySelectorAll('img').forEach((img) => { img.loading = 'eager'; });
+    ['result-bg.webp'].forEach((f) => { new Image().src = IMG + f; });
+  });
+
+  // ?step=N opens a screen directly (handy for QA)
+  const step = parseInt(new URLSearchParams(location.search).get('step'), 10);
+  screens[0].classList.add('is-active');
+  if (new URLSearchParams(location.search).has('demo')) {
+    // reproduce the selection states shown in the Figma mockups
+    Q.forEach((q) => {
+      const s = app.querySelector(`[data-q="${q.id}"]`);
+      const picks = q.id === 'zones' ? ['Hips', 'Legs'] : [s.querySelector('[data-opt]').dataset.opt];
+      picks.forEach((p) => toggle(s.querySelector(`[data-opt="${p}"]`)));
+    });
+    ['Sun', 'Mon', 'Tue'].forEach((d) => app.querySelector(`[data-day="${d}"]`).click());
+  }
+  if (step > 0 && step < screens.length) go(step);
+})();
+</script>
+</body>
+</html>
